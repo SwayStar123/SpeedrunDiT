@@ -288,14 +288,7 @@ def main(args):
             x = x.squeeze(dim=1).to(device)
             y = y.to(device)
             z = None
-            if args.legacy:
-                # In our early experiments, we accidentally apply label dropping twice: 
-                # once in train.py and once in sit.py. 
-                # We keep this option for exact reproducibility with previous runs.
-                drop_ids = torch.rand(y.shape[0], device=y.device) < args.cfg_prob
-                labels = torch.where(drop_ids, args.num_classes, y)
-            else:
-                labels = y
+            labels = y
             with torch.no_grad():
                 x = sample_posterior(x, latents_scale=latents_scale, latents_bias=latents_bias)
                 zs = []
@@ -462,7 +455,6 @@ def parse_args(input_args=None):
     parser.add_argument("--enc-type", type=str, default='dinov2-vit-b')
     parser.add_argument("--proj-coeff", type=float, default=0.5)
     parser.add_argument("--weighting", default="uniform", type=str, help="Max gradient norm.")
-    parser.add_argument("--legacy", action=argparse.BooleanOptionalAction, default=False)
     parser.add_argument("--cls", type=float, default=0.03)
     parser.add_argument("--cfm-weighting", default="uniform", choices=["uniform", "linear"], type=str)
     parser.add_argument("--cfm-coeff", type=float, default=0.05)

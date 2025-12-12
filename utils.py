@@ -1,24 +1,23 @@
 import os
-from torchvision.datasets.utils import download_url
 import torch
+from huggingface_hub import hf_hub_download
 import math
 import warnings
 
-# code from SiT repository
-pretrained_models = {'last.pt'}
-
-def download_model(model_name):
+def download_model(
+    repo_id: str = "SwayStar123/SpeedrunDiT",
+    filename: str = "256/0400000.pt",
+    local_dir: str = "pretrained_models",
+) -> str:
     """
-    Downloads a pre-trained SiT model from the web.
+    Downloads a pre-trained checkpoint from Hugging Face Hub and returns the local file path.
     """
-    assert model_name in pretrained_models
-    local_path = f'pretrained_models/{model_name}'
-    if not os.path.isfile(local_path):
-        os.makedirs('pretrained_models', exist_ok=True)
-        web_path = f'https://www.dl.dropboxusercontent.com/scl/fi/cxedbs4da5ugjq5wg3zrg/last.pt?rlkey=8otgrdkno0nd89po3dpwngwcc&st=apcc645o&dl=0'
-        download_url(web_path, 'pretrained_models', filename=model_name)
-    model = torch.load(local_path, map_location=lambda storage, loc: storage)
-    return model
+    return hf_hub_download(
+        repo_id=repo_id,
+        filename=filename,
+        local_dir=local_dir,
+        local_dir_use_symlinks=False,
+    )
 
 
 @torch.no_grad()
@@ -107,18 +106,3 @@ def _no_grad_trunc_normal_(tensor, mean, std, a, b):
 
 def trunc_normal_(tensor, mean=0., std=1., a=-2., b=2.):
     return _no_grad_trunc_normal_(tensor, mean, std, a, b)
-
-
-def load_legacy_checkpoints(state_dict, encoder_depth):
-    new_state_dict = dict()
-    for key, value in state_dict.items():
-        if 'decoder_blocks' in key:
-            parts =key.split('.')
-            new_idx = int(parts[1]) + encoder_depth
-            parts[0] = 'blocks'
-            parts[1] = str(new_idx)
-            new_key = '.'.join(parts)
-            new_state_dict[new_key] = value
-        else:
-            new_state_dict[key] = value
-    return new_state_dict

@@ -22,7 +22,7 @@ import numpy as np
 import math
 import argparse
 from samplers import euler_maruyama_sampler, euler_maruyama_sampler_path_drop
-from utils import load_legacy_checkpoints, download_model
+from utils import download_model
 
 
 def create_npz_from_sample_folder(sample_dir, num=50_000):
@@ -50,7 +50,7 @@ def main(args):
     assert torch.cuda.is_available(), "Sampling with DDP requires at least one GPU. sample.py supports CPU-only usage"
     torch.set_grad_enabled(False)
 
-    # Setup DDP:cd
+    # Setup DDP:
     dist.init_process_group("nccl")
     rank = dist.get_rank()
     device = rank % torch.cuda.device_count()
@@ -66,8 +66,8 @@ def main(args):
         input_size=latent_size,
         num_classes=args.num_classes,
         in_channels=32,
-        use_cfg = True,
-        z_dims = [int(z_dim) for z_dim in args.projector_embed_dims.split(',')],
+        use_cfg=True,
+        z_dims=[int(z_dim) for z_dim in args.projector_embed_dims.split(',')],
         **block_kwargs,
     ).to(device)
     # Auto-download a pre-trained model or load a custom SiT checkpoint from train.py:
@@ -76,26 +76,29 @@ def main(args):
 
     #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     if ckpt_path is None:
-        args.ckpt = 'SiT-XL-2-256x256.pt'
-        assert args.model == 'SiT-XL/2'
+        args.ckpt = download_model(repo_id="SwayStar123/SpeedrunDiT", filename="256/0400000.pt")
+        assert args.model == 'SiT-B/1'
         assert len(args.projector_embed_dims.split(',')) == 1
         assert int(args.projector_embed_dims.split(',')[0]) == 768
-        state_dict = download_model('last.pt')
+        assert args.qk_norm is True
+        assert args.resolution == 256
+        assert args.mode == "sde"
+        ckpt = torch.load(args.ckpt, map_location=f'cuda:{device}', weights_only=False)
+        state_dict = ckpt['ema'] if isinstance(ckpt, dict) and 'ema' in ckpt else ckpt
     else:
-        state_dict = torch.load(ckpt_path, map_location=f'cuda:{device}', weights_only=False)['ema']
+        ckpt = torch.load(ckpt_path, map_location=f'cuda:{device}', weights_only=False)
+        state_dict = ckpt['ema'] if isinstance(ckpt, dict) and 'ema' in ckpt else ckpt
 
-    if args.legacy:
-        state_dict = load_legacy_checkpoints(
-            state_dict=state_dict, encoder_depth=args.encoder_depth
-            )
     model.load_state_dict(state_dict)
     #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 
     model.eval()  # important!
     # Load invae model using load_invae function
-    vae = load_invae("REPA-E/e2e-invae").to(device)
-    vae.eval().requires_grad_(False)
+    if rank == 0:
+        _ = load_invae("REPA-E/e2e-invae", device=torch.device("cpu"))
+    dist.barrier()
+    vae = load_invae("REPA-E/e2e-invae", device=torch.device(f"cuda:{device}"))
 
 
     # Create folder to save samples:
@@ -222,11 +225,11 @@ if __name__ == "__main__":
     parser.add_argument("--sample-dir", type=str, default="samples")
 
     # model
-    parser.add_argument("--model", type=str, choices=list(SiT_models.keys()), default="SiT-XL/2")
+    parser.add_argument("--model", type=str, choices=list(SiT_models.keys()), default="SiT-B/1")
     parser.add_argument("--num-classes", type=int, default=1000)
     parser.add_argument("--resolution", type=int, choices=[256, 512], default=256)
     parser.add_argument("--fused-attn", action=argparse.BooleanOptionalAction, default=False)
-    parser.add_argument("--qk-norm", action=argparse.BooleanOptionalAction, default=False)
+    parser.add_argument("--qk-norm", action=argparse.BooleanOptionalAction, default=True)
 
     # number of samples
     parser.add_argument("--per-proc-batch-size", type=int, default=32)
@@ -236,10 +239,10 @@ if __name__ == "__main__":
                         help="If enabled, sample class labels in a balanced way so each class index appears equally often.")
 
     # sampling related hyperparameters
-    parser.add_argument("--mode", type=str, default="ode")
+    parser.add_argument("--mode", type=str, default="sde")
     parser.add_argument("--cfg-scale",  type=float, default=1.5)
     parser.add_argument("--cls-cfg-scale",  type=float, default=1.5)
-    parser.add_argument("--projector-embed-dims", type=str, default="768,1024")
+    parser.add_argument("--projector-embed-dims", type=str, default="768")
     parser.add_argument("--path-type", type=str, default="linear", choices=["linear", "cosine"])
     parser.add_argument("--num-steps", type=int, default=50)
     parser.add_argument("--heun", action=argparse.BooleanOptionalAction, default=False) # only for ode
@@ -248,8 +251,6 @@ if __name__ == "__main__":
     parser.add_argument('--local-rank', default=-1, type=int)
     parser.add_argument('--cls', default=768, type=int)
     parser.add_argument('--path-drop', default=True, action=argparse.BooleanOptionalAction,)
-    # will be deprecated
-    parser.add_argument("--legacy", action=argparse.BooleanOptionalAction, default=False) # only for ode
 
     parser.add_argument("--time-shifting", action=argparse.BooleanOptionalAction, default=True)
     parser.add_argument("--shift-base", type=int, default=4096)
