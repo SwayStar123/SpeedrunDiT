@@ -1,6 +1,6 @@
 """
 Ref:
-    https://github.com/CompVis/latent-diffusion/blob/main/ldm/models/autoencoder.py
+    https://github.com/End2End-Diffusion/REPA-E/blob/main/models/autoencoder.py
 """
 
 from dictdot import dictdot

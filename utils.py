@@ -1,8 +1,6 @@
 import os
 from torchvision.datasets.utils import download_url
 import torch
-import torchvision.models as torchvision_models
-import timm
 import math
 import warnings
 

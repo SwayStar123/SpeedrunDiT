@@ -13,7 +13,6 @@ import torch.nn as nn
 import numpy as np
 import math
 from timm.models.vision_transformer import PatchEmbed, Mlp
-from torch.nn import RMSNorm
 import torch.nn.functional as F
 
 from models.pos_embed import VisionRotaryEmbeddingFast

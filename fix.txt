@@ -1,5 +1,0 @@
-# To ensure TensorFlow can see the GPU libraries in this environment, run:
-python -m pip install 'nvidia-cudnn-cu12==8.9.2.26'
-
-# And, if needed in a fresh shell, set LD_LIBRARY_PATH for this session:
-export LD_LIBRARY_PATH=/home/sky/miniconda3/lib/python3.10/site-packages/nvidia/cudnn/lib:$LD_LIBRARY_PATH
