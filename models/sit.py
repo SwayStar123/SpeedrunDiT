@@ -600,7 +600,6 @@ class SiT(nn.Module):
         x_out, cls_token_out = self.final_layer(x_dec, c, cls=cls_token)
         x_out = self.unpatchify(x_out)
 
-        # ids_keep lets you inspect which tokens were kept; ignore it if you don't need it.
         return x_out, zs, cls_token_out
 
 
