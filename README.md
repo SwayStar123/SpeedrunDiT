@@ -60,6 +60,13 @@ python preprocessing/dataset_tools.py encode --source dataset/images \
   --dest dataset/vae-in
 ```
 
+Preprocessed dataset is also uploaded here:
+```
+https://huggingface.co/datasets/SwayStar123/repa-imagenet-256/blob/main/dataset.zip
+https://huggingface.co/datasets/SwayStar123/repa-imagenet-256/blob/main/vae-in.zip
+```
+You must first unzip the dataset.zip file, and then unzip the vae-in.zip inside the newly created `dataset` folder
+
 ## Training
 
 An example command is provided in `train.sh`:
