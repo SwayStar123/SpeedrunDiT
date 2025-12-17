@@ -107,10 +107,13 @@ If you use this repository, please cite SR-DiT:
 
 ```bibtex
 @misc{bhanded2025speedrundit,
-  title        = {Speedrunning ImageNet Diffusion},
-  author       = {Swayam Bhanded},
-  year         = {2025},
-  howpublished = {\url{https://github.com/SwayStar123/SpeedrunDiT}},
+  title         = {Speedrunning ImageNet Diffusion},
+  author        = {Bhanded, Swayam},
+  year          = {2025},
+  eprint        = {2512.12386},
+  archivePrefix = {arXiv},
+  primaryClass  = {cs.CV},
+  url           = {https://arxiv.org/abs/2512.12386},
 }
 ```
 
