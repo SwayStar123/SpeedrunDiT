@@ -17,6 +17,7 @@ Links:
 - **ImageNet-512 (400K iters, no CFG)**: **FID 4.23**, **KDD 0.306**, sampling at **NFE=250**
 
 SR-DiT builds on top of a strong baseline (REG + INVAE) and then progressively adds:
+- Semantic latent space via E2E-INVAE
 - SPRINT token routing
 - RMSNorm, RoPE, QK normalization, value residual learning
 - Contrastive Flow Matching (CFM)
