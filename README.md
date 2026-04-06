@@ -10,6 +10,7 @@ Links:
 - **Checkpoints**: https://huggingface.co/SwayStar123/SpeedrunDiT/tree/main
 - **W&B runs**: https://wandb.ai/kagaku-ai/REG/
 - **Ablations (branches)**: https://github.com/SwayStar123/REG
+- **Paper (arxiv)**: https://arxiv.org/abs/2512.12386
 
 ## Highlights
 
